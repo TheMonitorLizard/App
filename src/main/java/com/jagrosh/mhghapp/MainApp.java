@@ -16,16 +16,15 @@
 package com.jagrosh.mhghapp;
 
 import javafx.application.Application;
-import static javafx.application.Application.launch;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
-
-public class MainApp extends Application {
-
+public class MainApp extends Application
+{
     @Override
     public void start(Stage stage) throws Exception
     {
@@ -42,8 +41,51 @@ public class MainApp extends Application {
         stage.setTitle("MHGH App");
         stage.getIcons().add(new Image(MainApp.class.getResourceAsStream("/images/icon.jpg")));
         stage.setScene(scene);
+        startTrayCycle(controller, stage);
         stage.show();
-        stage.setOnCloseRequest(e -> controller.close());
+    }
+
+    private void startTrayCycle(FXMLController controller, Stage stage)
+    {
+        TrayManager tray = TrayManager.INSTANCE;
+        if(tray.isSupported())
+        {
+            stage.focusedProperty().addListener((observable, before, after) ->
+            {
+                // if we are focused, do not notify, otherwise notify
+                tray.setNotifying(!after);
+            });
+
+            // on closing
+            stage.setOnCloseRequest(e ->
+            {
+                tray.showTrayIcon();
+                tray.setOnOpenPopupClicked(() -> Platform.runLater(() ->
+                {
+                    // note that this runs on the JavaFX Thread
+                    stage.show();
+                    stage.toFront();
+                }));
+            });
+
+            // on showing
+            stage.setOnShowing(e ->
+            {
+                tray.hideTrayIcon();
+                tray.setOnOpenPopupClicked(() -> Platform.runLater(stage::toFront));
+                // unlike when we close shown above, while focused
+                //we only need to bring the stage to the front.
+            });
+
+            // on exit popup closed
+            tray.setOnExitPopupClicked(controller::close);
+        }
+        else
+        {
+            // System tray is not supported, we should
+            //exit when the user x's out of the program
+            stage.setOnCloseRequest(e -> controller.close());
+        }
     }
 
     /**

@@ -16,13 +16,13 @@
 package com.jagrosh.mhghapp;
 
 import com.jagrosh.discordipc.IPCClient;
-import com.jagrosh.discordipc.IPCClient.Status;
 import com.jagrosh.discordipc.IPCListener;
 import com.jagrosh.discordipc.entities.Callback;
 import com.jagrosh.discordipc.entities.DiscordBuild;
 import com.jagrosh.discordipc.entities.Packet;
 import com.jagrosh.discordipc.entities.RichPresence;
 import com.jagrosh.discordipc.entities.User;
+import com.jagrosh.discordipc.entities.pipe.PipeStatus;
 import com.jagrosh.discordipc.exceptions.NoDiscordClientException;
 import com.jagrosh.mhghapp.entities.Activity;
 import com.jagrosh.mhghapp.entities.MHGame;
@@ -108,7 +108,7 @@ public class FXMLController implements Initializable
     @FXML
     private void updatePresence(ActionEvent event)
     {
-        if(client==null || client.getStatus()!=Status.CONNECTED)
+        if(client==null || client.getStatus() != PipeStatus.CONNECTED)
         {
             setStatus("Not connected! Trying to connect...");
             connect();
@@ -139,20 +139,22 @@ public class FXMLController implements Initializable
                     g.getAssetId(), g.getName(), w==null ? null : w.getAssetId(), w==null ? null : w.getName(), 
                     hallField.getText()+":"+(passField.getText().isEmpty() ? "NONE" : passField.getText().toUpperCase()),
                     s, 4, null, null, null, false);
-            client.sendRichPresence(rp, new Callback(() -> setStatus("Updated!"), err -> setStatus("Failed to update :(")));
+            client.sendRichPresence(rp, new Callback(packet -> setStatus("Updated!"), err -> setStatus("Failed to update :(")));
         }
     }
     
     @FXML
     private void clearPresence(ActionEvent event)
     {
-        if(client==null || client.getStatus()!=Status.CONNECTED)
+        if(client==null || client.getStatus() != PipeStatus.CONNECTED)
         {
             setStatus("Not connected! Trying to connect...");
             connect();
         }
         else
-            client.sendRichPresence(null, new Callback(() -> setStatus("Cleared!"), err -> setStatus("Failed to clear :(")));
+        {
+            client.sendRichPresence(null, new Callback(packet -> setStatus("Cleared!"), err -> setStatus("Failed to clear :(")));
+        }
     }
     
     @FXML
@@ -165,9 +167,9 @@ public class FXMLController implements Initializable
     @Override
     public void initialize(URL url, ResourceBundle rb)
     {
-        PrintStream con=new PrintStream(new TextAreaOutputStream(console, 1000));
-        System.setOut(con);
-        System.setErr(con);
+        //PrintStream con=new PrintStream(new TextAreaOutputStream(console, 1000));
+        //System.setOut(con);
+        //System.setErr(con);
         ToggleGroup tg = new ToggleGroup();
         partyBtn1.setToggleGroup(tg);
         partyBtn2.setToggleGroup(tg);
@@ -329,11 +331,11 @@ public class FXMLController implements Initializable
         else Platform.runLater(() -> setStatus(text));
     }
     
-    public void close()
+    void close()
     {
         saveSettings();
         client.close();
-        System.exit(0);
+        Platform.exit();
     }
     
     private void saveSettings()

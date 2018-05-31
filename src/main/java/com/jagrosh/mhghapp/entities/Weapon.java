@@ -43,7 +43,7 @@ public enum Weapon
     private final String asset, name;
     private final MHGame[] games;
     
-    private Weapon(String name, String asset, MHGame... games)
+    Weapon(String name, String asset, MHGame... games)
     {
         this.name = name;
         this.asset = asset;

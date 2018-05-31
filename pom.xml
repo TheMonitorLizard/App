@@ -32,7 +32,7 @@
         <dependency>
             <groupId>com.jagrosh</groupId>
             <artifactId>DiscordIPC</artifactId>
-            <version>0.3</version>
+            <version>0.4</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>

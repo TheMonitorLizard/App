@@ -30,7 +30,7 @@ public enum Activity
     
     private final String value;
     
-    private Activity(String value)
+    Activity(String value)
     {
         this.value = value;
     }
